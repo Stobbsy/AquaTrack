@@ -1,0 +1,267 @@
+/* ── AquaTrack — Mobile-first dark aquatic theme ── */
+
+:root {
+  --bg:          #0a1628;
+  --bg-card:     #122240;
+  --bg-input:    #1a2d4d;
+  --accent:      #00b4d8;
+  --accent-glow: rgba(0, 180, 216, 0.15);
+  --text:        #e0e6f0;
+  --text-dim:    #8899b3;
+  --green:       #2ecc71;
+  --yellow:      #f1c40f;
+  --red:         #e74c3c;
+  --border:      #1e3a5f;
+  --radius:      12px;
+  --nav-h:       64px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+  padding-bottom: calc(var(--nav-h) + 16px);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── Header ── */
+.app-header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.app-header h1 {
+  font-size: 1.15rem; font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), #48cae4);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.app-header .icon { font-size: 1.3rem; }
+
+/* ── Pages ── */
+.page { display: none; padding: 16px; max-width: 600px; margin: 0 auto; }
+.page.active { display: block; animation: fadeIn .2s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ── Cards ── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card h2 {
+  font-size: 1rem; font-weight: 600; margin-bottom: 14px;
+  color: var(--accent);
+}
+.card h3 {
+  font-size: .85rem; font-weight: 600; margin-bottom: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: .5px;
+}
+
+/* ── Forms ── */
+.form-group {
+  margin-bottom: 14px;
+}
+.form-group label {
+  display: block; font-size: .82rem; color: var(--text-dim);
+  margin-bottom: 5px; font-weight: 500;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 12px 14px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color .15s;
+}
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.form-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 13px 24px;
+  border: none; border-radius: 10px;
+  font-size: .95rem; font-weight: 600;
+  cursor: pointer; transition: all .15s;
+  min-height: 48px;
+}
+.btn-primary {
+  background: var(--accent); color: #fff; width: 100%;
+}
+.btn-primary:active { transform: scale(.97); filter: brightness(1.1); }
+.btn-secondary {
+  background: var(--bg-input); color: var(--text); border: 1px solid var(--border); width: 100%;
+}
+.btn-secondary:active { background: var(--border); }
+.btn-danger {
+  background: transparent; color: var(--red); border: 1px solid var(--red); width: 100%;
+}
+.btn-sm { padding: 8px 14px; font-size: .82rem; min-height: 36px; border-radius: 8px; }
+.btn + .btn { margin-top: 10px; }
+
+/* ── Results card ── */
+.results {
+  display: none;
+  background: linear-gradient(135deg, rgba(0,180,216,.08), rgba(0,180,216,.02));
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-top: 16px;
+}
+.results.visible { display: block; animation: fadeIn .25s ease; }
+.result-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.result-row:last-child { border-bottom: none; }
+.result-label { font-size: .85rem; color: var(--text-dim); }
+.result-value { font-size: 1.15rem; font-weight: 700; }
+.result-value.prime { color: var(--accent); font-size: 1.4rem; }
+.result-hint { font-size: .75rem; color: var(--text-dim); margin-top: 10px; text-align: center; }
+.result-warning {
+  margin-top: 12px; padding: 10px 14px;
+  background: rgba(231,76,60,.12); border: 1px solid var(--red);
+  border-radius: 8px; font-size: .85rem; color: var(--red);
+}
+
+/* ── Dashboard summary cards ── */
+.summary-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
+}
+.summary-item {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; text-align: center;
+}
+.summary-item .label { font-size: .75rem; color: var(--text-dim); margin-bottom: 4px; text-transform: uppercase; letter-spacing: .3px; }
+.summary-item .value { font-size: 1.05rem; font-weight: 700; }
+.summary-item.highlight { border-color: var(--accent); }
+
+/* Quick actions */
+.quick-actions {
+  display: grid; grid-template-columns: 1fr; gap: 10px;
+}
+.quick-action {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  cursor: pointer; transition: border-color .15s;
+  text-decoration: none; color: var(--text);
+}
+.quick-action:active { border-color: var(--accent); }
+.quick-action .qa-icon { font-size: 1.5rem; }
+.quick-action .qa-text { font-size: .9rem; font-weight: 600; }
+.quick-action .qa-sub { font-size: .75rem; color: var(--text-dim); }
+
+/* ── History lists ── */
+.history-list { list-style: none; }
+.history-item {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+  margin-bottom: 10px;
+  position: relative;
+}
+.history-item .date {
+  font-size: .75rem; color: var(--text-dim); margin-bottom: 6px;
+}
+.history-item .details {
+  display: flex; flex-wrap: wrap; gap: 10px;
+}
+.history-item .detail {
+  font-size: .85rem;
+}
+.history-item .detail span { font-weight: 600; }
+.history-item .delete-btn {
+  position: absolute; top: 10px; right: 12px;
+  background: none; border: none; color: var(--text-dim);
+  cursor: pointer; font-size: 1rem; padding: 4px;
+}
+.history-item .delete-btn:hover { color: var(--red); }
+
+/* Water test status badges */
+.badge {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 6px; font-size: .8rem; font-weight: 600;
+}
+.badge.green  { background: rgba(46,204,113,.15); color: var(--green); }
+.badge.yellow { background: rgba(241,196,15,.15); color: var(--yellow); }
+.badge.red    { background: rgba(231,76,60,.15);  color: var(--red); }
+.badge.unknown { background: rgba(136,153,179,.1); color: var(--text-dim); }
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center; padding: 40px 20px; color: var(--text-dim); font-size: .9rem;
+}
+.empty-state .icon { font-size: 2.5rem; margin-bottom: 10px; opacity: .5; }
+
+/* ── Settings ── */
+.setting-info {
+  font-size: .85rem; color: var(--text-dim); margin: -8px 0 14px;
+}
+
+/* ── Bottom Navigation ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: var(--nav-h);
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-around; align-items: center;
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: none; border: none;
+  color: var(--text-dim);
+  font-size: .65rem; font-weight: 500;
+  cursor: pointer; padding: 6px 12px;
+  transition: color .15s;
+  min-width: 56px;
+}
+.nav-item .nav-icon { font-size: 1.35rem; }
+.nav-item.active { color: var(--accent); }
+
+/* ── Utilities ── */
+.mt-sm { margin-top: 8px; }
+.mt-md { margin-top: 16px; }
+.mb-md { margin-bottom: 16px; }
+.text-center { text-align: center; }
+.text-dim { color: var(--text-dim); }
+.text-sm { font-size: .82rem; }
+
+/* ── Tablet+ ── */
+@media (min-width: 768px) {
+  .page { padding: 24px; }
+  .summary-grid { grid-template-columns: repeat(4, 1fr); }
+  .quick-actions { grid-template-columns: 1fr 1fr 1fr; }
+}

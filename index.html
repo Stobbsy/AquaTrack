@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0d3b66">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.svg">
+  <link rel="stylesheet" href="css/style.css">
+  <title>AquaTrack</title>
+</head>
+<body>
+
+  <!-- ═══ Header ═══ -->
+  <header class="app-header">
+    <span class="icon">🐠</span>
+    <h1>AquaTrack</h1>
+  </header>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- DASHBOARD                                   -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section id="page-dashboard" class="page active">
+
+    <div class="summary-grid">
+      <div class="summary-item highlight">
+        <div class="label">Water Change</div>
+        <div class="value" id="dash-wc-time">Never</div>
+        <div class="text-sm text-dim" id="dash-wc-detail">—</div>
+      </div>
+      <div class="summary-item">
+        <div class="label">Last Fed</div>
+        <div class="value" id="dash-feed-time">Never</div>
+        <div class="text-sm text-dim" id="dash-feed-detail">—</div>
+      </div>
+      <div class="summary-item">
+        <div class="label">Last Test</div>
+        <div class="value" id="dash-test-time">Never</div>
+        <div id="dash-test-badges" class="mt-sm"></div>
+      </div>
+      <div class="summary-item">
+        <div class="label">Tank Volume</div>
+        <div class="value" id="dash-tank-vol">—</div>
+      </div>
+    </div>
+
+    <!-- Quick Feed -->
+    <div class="card">
+      <h2>🐟 Quick Feed</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="feed-type">Food type (optional)</label>
+          <input type="text" id="feed-type" placeholder="e.g. Flakes, Pellets">
+        </div>
+        <div class="form-group">
+          <label for="feed-amount">Amount (optional)</label>
+          <input type="text" id="feed-amount" placeholder="e.g. Pinch, 2 pellets">
+        </div>
+      </div>
+      <button class="btn btn-secondary" id="btn-quick-feed">🐟 Log Feeding</button>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <div class="quick-action" data-nav="calculator">
+        <span class="qa-icon">💧</span>
+        <div>
+          <div class="qa-text">Water Change Calculator</div>
+          <div class="qa-sub">Calculate volume & Prime dosage</div>
+        </div>
+      </div>
+      <div class="quick-action" data-nav="tests">
+        <span class="qa-icon">🧪</span>
+        <div>
+          <div class="qa-text">Log Water Test</div>
+          <div class="qa-sub">API Freshwater Master Test Kit</div>
+        </div>
+      </div>
+      <div class="quick-action" data-nav="history">
+        <span class="qa-icon">📋</span>
+        <div>
+          <div class="qa-text">View History</div>
+          <div class="qa-sub">Water changes, tests & feedings</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- CALCULATOR                                  -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section id="page-calculator" class="page">
+    <div class="card">
+      <h2>💧 Water Change Calculator</h2>
+      <p class="text-sm text-dim mb-md" id="calc-tank-info"></p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="calc-before">Before drain (cm from rim)</label>
+          <input type="number" id="calc-before" inputmode="decimal" step="0.1" min="0" placeholder="e.g. 3">
+        </div>
+        <div class="form-group">
+          <label for="calc-after">After drain (cm from rim)</label>
+          <input type="number" id="calc-after" inputmode="decimal" step="0.1" min="0" placeholder="e.g. 15">
+        </div>
+      </div>
+
+      <p class="text-sm text-dim mb-md">
+        Measure from the tank rim down to the water surface. The "after" value should be larger (water is lower).
+      </p>
+
+      <div id="calc-error" style="color: var(--red); font-size: .85rem; margin-bottom: 10px;"></div>
+
+      <button class="btn btn-primary" id="btn-calculate">Calculate</button>
+
+      <!-- Results -->
+      <div class="results" id="calc-results">
+        <div class="result-row">
+          <span class="result-label">Volume removed</span>
+          <span class="result-value" id="res-volume">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Tank water changed</span>
+          <span class="result-value" id="res-percent">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Seachem Prime needed</span>
+          <span class="result-value prime" id="res-prime">—</span>
+        </div>
+        <div class="result-hint" id="res-cap-ref">1 cap = 5 mL</div>
+        <div class="result-warning" id="res-warning" style="display:none;"></div>
+        <button class="btn btn-secondary mt-md" id="btn-save-wc">💾 Save Water Change</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- WATER TESTS                                 -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section id="page-tests" class="page">
+    <div class="card">
+      <h2>🧪 API Freshwater Master Test Kit</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="test-ph">pH (6.0–7.6)</label>
+          <select id="test-ph">
+            <option value="">—</option>
+            <option value="6.0">6.0</option>
+            <option value="6.2">6.2</option>
+            <option value="6.4">6.4</option>
+            <option value="6.6">6.6</option>
+            <option value="6.8">6.8</option>
+            <option value="7.0">7.0</option>
+            <option value="7.2">7.2</option>
+            <option value="7.4">7.4</option>
+            <option value="7.6">7.6</option>
+          </select>
+        </div>
+        <div class="form-group" id="highph-group" style="display: none;">
+          <label for="test-highph">High Range pH (7.4–8.8)</label>
+          <select id="test-highph">
+            <option value="">—</option>
+            <option value="7.4">7.4</option>
+            <option value="7.8">7.8</option>
+            <option value="8.0">8.0</option>
+            <option value="8.2">8.2</option>
+            <option value="8.4">8.4</option>
+            <option value="8.8">8.8</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="test-ammonia">Ammonia NH₃/NH₄⁺ (ppm)</label>
+        <select id="test-ammonia">
+          <option value="">—</option>
+          <option value="0">0</option>
+          <option value="0.25">0.25</option>
+          <option value="0.50">0.50</option>
+          <option value="1.0">1.0</option>
+          <option value="2.0">2.0</option>
+          <option value="4.0">4.0</option>
+          <option value="8.0">8.0</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="test-nitrite">Nitrite NO₂⁻ (ppm)</label>
+        <select id="test-nitrite">
+          <option value="">—</option>
+          <option value="0">0</option>
+          <option value="0.25">0.25</option>
+          <option value="0.50">0.50</option>
+          <option value="1.0">1.0</option>
+          <option value="2.0">2.0</option>
+          <option value="5.0">5.0</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="test-nitrate">Nitrate NO₃⁻ (ppm)</label>
+        <select id="test-nitrate">
+          <option value="">—</option>
+          <option value="0">0</option>
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="40">40</option>
+          <option value="80">80</option>
+          <option value="160">160</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" id="btn-save-test">💾 Save Test Results</button>
+    </div>
+
+    <h3 style="color: var(--text-dim); font-size: .85rem; margin: 16px 0 8px; text-transform: uppercase; letter-spacing: .5px;">Test History</h3>
+    <div id="test-history"></div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- HISTORY                                     -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section id="page-history" class="page">
+    <div class="card">
+      <h2>💧 Water Changes</h2>
+      <div id="wc-history"></div>
+    </div>
+    <div class="card">
+      <h2>🐟 Feedings</h2>
+      <div id="feed-history"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- SETTINGS                                    -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section id="page-settings" class="page">
+    <div class="card">
+      <h2>⚙️ Tank Settings</h2>
+
+      <div class="form-group">
+        <label for="set-name">Tank name</label>
+        <input type="text" id="set-name" placeholder="My Aquarium">
+      </div>
+
+      <h3>Tank Dimensions (internal, cm)</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="set-length">Length</label>
+          <input type="number" id="set-length" inputmode="decimal" step="0.1">
+        </div>
+        <div class="form-group">
+          <label for="set-width">Width</label>
+          <input type="number" id="set-width" inputmode="decimal" step="0.1">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="set-height">Height</label>
+        <input type="number" id="set-height" inputmode="decimal" step="0.1">
+      </div>
+      <p class="setting-info" id="set-volume-display">Calculated volume: —</p>
+
+      <h3>Seachem Prime</h3>
+      <div class="form-group">
+        <label for="set-prime">mL per 200 litres</label>
+        <input type="number" id="set-prime" inputmode="decimal" step="0.5" min="0.5">
+      </div>
+
+      <button class="btn btn-primary" id="btn-save-settings">💾 Save Settings</button>
+    </div>
+
+    <div class="card">
+      <h2>📦 Data Management</h2>
+      <button class="btn btn-secondary" id="btn-export">📥 Export Data (JSON)</button>
+      <button class="btn btn-danger" id="btn-clear">🗑️ Clear All Data</button>
+    </div>
+  </section>
+
+  <!-- ═══ Bottom Navigation ═══ -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-page="dashboard">
+      <span class="nav-icon">🏠</span>
+      Dashboard
+    </button>
+    <button class="nav-item" data-page="calculator">
+      <span class="nav-icon">💧</span>
+      Calculator
+    </button>
+    <button class="nav-item" data-page="tests">
+      <span class="nav-icon">🧪</span>
+      Tests
+    </button>
+    <button class="nav-item" data-page="history">
+      <span class="nav-icon">📋</span>
+      History
+    </button>
+    <button class="nav-item" data-page="settings">
+      <span class="nav-icon">⚙️</span>
+      Settings
+    </button>
+  </nav>
+
+  <!-- Scripts: order matters (calculator & tracker before app) -->
+  <script src="js/calculator.js"></script>
+  <script src="js/tracker.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
