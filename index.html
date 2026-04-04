@@ -135,6 +135,63 @@
         <button class="btn btn-secondary mt-md" id="btn-save-wc">💾 Save Water Change</button>
       </div>
     </div>
+
+    <!-- Plan Water Change -->
+    <div class="card">
+      <h2>📐 Plan Water Change</h2>
+      <p class="text-sm text-dim mb-md" id="plan-tank-info"></p>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="plan-current">Current level (cm from rim)</label>
+          <input type="number" id="plan-current" inputmode="decimal" step="0.1" min="0" placeholder="e.g. 10">
+        </div>
+        <div class="form-group">
+          <label for="plan-target">Target water change %</label>
+          <input type="number" id="plan-target" inputmode="decimal" step="1" min="1" max="90" value="30">
+        </div>
+      </div>
+
+      <p class="text-sm text-dim mb-md">
+        Measure from the tank rim to the current water surface. Evaporation since the last fill is accounted for automatically.
+      </p>
+
+      <div id="plan-error" style="color: var(--red); font-size: .85rem; margin-bottom: 10px;"></div>
+
+      <button class="btn btn-primary" id="btn-plan-calculate">Calculate</button>
+
+      <!-- Plan Results -->
+      <div class="results" id="plan-results">
+        <div id="plan-no-drain" style="display:none; text-align:center; padding:12px 0; color: var(--green); font-weight:600;">
+          ✅ No drain needed — evaporation exceeds target. Just refill!
+        </div>
+        <div id="plan-drain-rows">
+          <div class="result-row">
+            <span class="result-label">Evaporated since fill</span>
+            <span class="result-value" id="plan-evap">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Drain to (cm from rim)</span>
+            <span class="result-value prime" id="plan-drain-to">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Volume to drain</span>
+            <span class="result-value" id="plan-drain-vol">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Total new water (refill)</span>
+            <span class="result-value" id="plan-new-water">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Seachem Prime needed</span>
+            <span class="result-value prime" id="plan-prime">—</span>
+          </div>
+          <div class="result-hint" id="plan-cap-ref">1 cap = 5 mL</div>
+        </div>
+        <div class="result-warning" id="plan-warning" style="display:none;"></div>
+        <button class="btn btn-secondary mt-md" id="btn-save-plan-wc">💾 Save Water Change</button>
+      </div>
+    </div>
   </section>
 
   <!-- ═══════════════════════════════════════════ -->
@@ -147,72 +204,85 @@
       <div class="form-row">
         <div class="form-group">
           <label for="test-ph">pH (6.0–7.6)</label>
-          <select id="test-ph">
-            <option value="">—</option>
-            <option value="6.0">6.0</option>
-            <option value="6.2">6.2</option>
-            <option value="6.4">6.4</option>
-            <option value="6.6">6.6</option>
-            <option value="6.8">6.8</option>
-            <option value="7.0">7.0</option>
-            <option value="7.2">7.2</option>
-            <option value="7.4">7.4</option>
-            <option value="7.6">7.6</option>
-          </select>
+          <div class="select-with-swatch">
+            <select id="test-ph">
+              <option value="">—</option>
+              <option value="6.0">6.0</option>
+              <option value="6.4">6.4</option>
+              <option value="6.6">6.6</option>
+              <option value="6.8">6.8</option>
+              <option value="7.0">7.0</option>
+              <option value="7.2">7.2</option>
+              <option value="7.6">7.6</option>
+            </select>
+            <span class="color-swatch" id="swatch-ph"></span>
+          </div>
         </div>
         <div class="form-group" id="highph-group" style="display: none;">
           <label for="test-highph">High Range pH (7.4–8.8)</label>
-          <select id="test-highph">
-            <option value="">—</option>
-            <option value="7.4">7.4</option>
-            <option value="7.8">7.8</option>
-            <option value="8.0">8.0</option>
-            <option value="8.2">8.2</option>
-            <option value="8.4">8.4</option>
-            <option value="8.8">8.8</option>
-          </select>
+          <div class="select-with-swatch">
+            <select id="test-highph">
+              <option value="">—</option>
+              <option value="7.4">7.4</option>
+              <option value="7.8">7.8</option>
+              <option value="8.0">8.0</option>
+              <option value="8.2">8.2</option>
+              <option value="8.4">8.4</option>
+              <option value="8.8">8.8</option>
+            </select>
+            <span class="color-swatch" id="swatch-highph"></span>
+          </div>
         </div>
       </div>
 
       <div class="form-group">
         <label for="test-ammonia">Ammonia NH₃/NH₄⁺ (ppm)</label>
-        <select id="test-ammonia">
-          <option value="">—</option>
-          <option value="0">0</option>
-          <option value="0.25">0.25</option>
-          <option value="0.50">0.50</option>
-          <option value="1.0">1.0</option>
-          <option value="2.0">2.0</option>
-          <option value="4.0">4.0</option>
-          <option value="8.0">8.0</option>
-        </select>
+        <div class="select-with-swatch">
+          <select id="test-ammonia">
+            <option value="">—</option>
+            <option value="0">0</option>
+            <option value="0.25">0.25</option>
+            <option value="0.50">0.50</option>
+            <option value="1.0">1.0</option>
+            <option value="2.0">2.0</option>
+            <option value="4.0">4.0</option>
+            <option value="8.0">8.0</option>
+          </select>
+          <span class="color-swatch" id="swatch-ammonia"></span>
+        </div>
       </div>
 
       <div class="form-group">
         <label for="test-nitrite">Nitrite NO₂⁻ (ppm)</label>
-        <select id="test-nitrite">
-          <option value="">—</option>
-          <option value="0">0</option>
-          <option value="0.25">0.25</option>
-          <option value="0.50">0.50</option>
-          <option value="1.0">1.0</option>
-          <option value="2.0">2.0</option>
-          <option value="5.0">5.0</option>
-        </select>
+        <div class="select-with-swatch">
+          <select id="test-nitrite">
+            <option value="">—</option>
+            <option value="0">0</option>
+            <option value="0.25">0.25</option>
+            <option value="0.50">0.50</option>
+            <option value="1.0">1.0</option>
+            <option value="2.0">2.0</option>
+            <option value="5.0">5.0</option>
+          </select>
+          <span class="color-swatch" id="swatch-nitrite"></span>
+        </div>
       </div>
 
       <div class="form-group">
         <label for="test-nitrate">Nitrate NO₃⁻ (ppm)</label>
-        <select id="test-nitrate">
-          <option value="">—</option>
-          <option value="0">0</option>
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="20">20</option>
-          <option value="40">40</option>
-          <option value="80">80</option>
-          <option value="160">160</option>
-        </select>
+        <div class="select-with-swatch">
+          <select id="test-nitrate">
+            <option value="">—</option>
+            <option value="0">0</option>
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="40">40</option>
+            <option value="80">80</option>
+            <option value="160">160</option>
+          </select>
+          <span class="color-swatch" id="swatch-nitrate"></span>
+        </div>
       </div>
 
       <button class="btn btn-primary" id="btn-save-test">💾 Save Test Results</button>
@@ -264,6 +334,13 @@
         <input type="number" id="set-height" inputmode="decimal" step="0.1">
       </div>
       <p class="setting-info" id="set-volume-display">Calculated volume: —</p>
+
+      <h3>Water Level</h3>
+      <div class="form-group">
+        <label for="set-fill-margin">Fill level (cm from rim)</label>
+        <input type="number" id="set-fill-margin" inputmode="decimal" step="0.5" min="0" placeholder="e.g. 8">
+      </div>
+      <p class="setting-info" id="set-fill-volume-display">Fill volume: —</p>
 
       <h3>Seachem Prime</h3>
       <div class="form-group">

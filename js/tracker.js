@@ -17,11 +17,35 @@ const Tracker = (() => {
 
   // Exact values from API kit colour cards
   const KIT_VALUES = {
-    ph:       [6.0, 6.2, 6.4, 6.6, 6.8, 7.0, 7.2, 7.4, 7.6],
+    ph:       [6.0, 6.4, 6.6, 6.8, 7.0, 7.2, 7.6],
     highPh:   [7.4, 7.8, 8.0, 8.2, 8.4, 8.8],
     ammonia:  [0, 0.25, 0.50, 1.0, 2.0, 4.0, 8.0],
     nitrite:  [0, 0.25, 0.50, 1.0, 2.0, 5.0],
     nitrate:  [0, 5, 10, 20, 40, 80, 160]
+  };
+
+  // Colours matching the API Freshwater Master Test Kit card
+  const KIT_COLORS = {
+    ph: {
+      '6.0': '#F0D020', '6.4': '#D4D048', '6.6': '#A8C040',
+      '6.8': '#6C9838', '7.0': '#4A7830', '7.2': '#387058', '7.6': '#2878A8'
+    },
+    highPh: {
+      '7.4': '#E0A030', '7.8': '#D07028', '8.0': '#C04030',
+      '8.2': '#A83040', '8.4': '#783060', '8.8': '#483080'
+    },
+    ammonia: {
+      '0': '#F0E030', '0.25': '#D0D838', '0.50': '#A8C830',
+      '1.0': '#58A830', '2.0': '#389030', '4.0': '#287830', '8.0': '#186028'
+    },
+    nitrite: {
+      '0': '#88D0E8', '0.25': '#B8A0D0', '0.50': '#A880C0',
+      '1.0': '#9060A8', '2.0': '#704090', '5.0': '#582080'
+    },
+    nitrate: {
+      '0': '#F0E030', '5': '#F0A030', '10': '#E87828',
+      '20': '#E05028', '40': '#D02828', '80': '#A82020', '160': '#701818'
+    }
   };
 
   // Safe ranges for colour coding: [greenMax, yellowMax] — above yellowMax = red
@@ -106,6 +130,7 @@ const Tracker = (() => {
     lengthCm: 120,
     widthCm: 44.5,
     heightCm: 50,
+    fillMarginCm: 8,
     primeMlPer200L: 5
   };
 
@@ -166,7 +191,7 @@ const Tracker = (() => {
   }
 
   return {
-    KIT_VALUES, SAFE_RANGES, getTestStatus,
+    KIT_VALUES, KIT_COLORS, SAFE_RANGES, getTestStatus,
     saveTest, getTests, deleteTest,
     saveFeed, getFeedings, deleteFeed,
     saveWaterChange, getWaterChanges, deleteWaterChange,

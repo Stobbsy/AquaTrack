@@ -102,6 +102,23 @@ body {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
+.select-with-swatch {
+  display: flex; align-items: center; gap: 10px;
+}
+.select-with-swatch select {
+  flex: 1;
+}
+.color-swatch {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  background: var(--bg-input);
+  transition: background-color .2s, border-color .2s;
+}
+.color-swatch.active {
+  border-color: rgba(255,255,255,.25);
+}
 .form-row {
   display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
 }

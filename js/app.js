@@ -66,6 +66,12 @@ const App = (() => {
     const tank = Tracker.getTank();
     document.getElementById('calc-tank-info').textContent =
       `${tank.lengthCm} × ${tank.widthCm} × ${tank.heightCm} cm — ${Math.round(Calculator.maxVolume(tank.lengthCm, tank.widthCm, tank.heightCm))}L`;
+
+    // Plan card info
+    const fillDepth = tank.heightCm - tank.fillMarginCm;
+    const fillVol = Math.round((tank.lengthCm * tank.widthCm * fillDepth) / 1000);
+    document.getElementById('plan-tank-info').textContent =
+      `Fill level: ${tank.fillMarginCm} cm from rim — ${fillVol}L usable volume`;
   }
 
   function doCalculate() {
@@ -142,6 +148,92 @@ const App = (() => {
     showToast('Water change saved!');
   }
 
+  // ── Plan Water Change ──
+  function doPlanCalculate() {
+    const tank = Tracker.getTank();
+    const currentCm = parseFloat(document.getElementById('plan-current').value);
+    const targetPct = parseFloat(document.getElementById('plan-target').value);
+    const errEl = document.getElementById('plan-error');
+    const resultsEl = document.getElementById('plan-results');
+
+    if (isNaN(currentCm) || isNaN(targetPct)) {
+      errEl.textContent = 'Please enter both values.';
+      resultsEl.classList.remove('visible');
+      return;
+    }
+
+    const result = Calculator.planWaterChange(tank, targetPct, currentCm);
+
+    if (!result.valid) {
+      errEl.textContent = result.errors.join(' ');
+      resultsEl.classList.remove('visible');
+      return;
+    }
+
+    errEl.textContent = '';
+
+    const noDrainEl = document.getElementById('plan-no-drain');
+    const drainRowsEl = document.getElementById('plan-drain-rows');
+
+    if (result.noDrainNeeded) {
+      noDrainEl.style.display = 'block';
+      drainRowsEl.querySelectorAll('.result-row').forEach(r => r.style.opacity = '0.4');
+    } else {
+      noDrainEl.style.display = 'none';
+      drainRowsEl.querySelectorAll('.result-row').forEach(r => r.style.opacity = '1');
+    }
+
+    document.getElementById('plan-evap').textContent = `${result.evaporated} L`;
+    document.getElementById('plan-drain-to').textContent = `${result.drainToFromRim} cm`;
+    document.getElementById('plan-drain-vol').textContent = `${result.volumeToDrain} L`;
+    document.getElementById('plan-new-water').textContent = `${result.totalNewWater} L`;
+    document.getElementById('plan-prime').textContent = `${result.primeMl} mL`;
+
+    const capRef = document.getElementById('plan-cap-ref');
+    const caps = result.primeMl / 5;
+    if (caps >= 1) {
+      capRef.textContent = `≈ ${caps % 1 === 0 ? caps : caps.toFixed(1)} cap${caps !== 1 ? 's' : ''}`;
+    } else {
+      capRef.textContent = `(1 cap = 5 mL)`;
+    }
+
+    const warnEl = document.getElementById('plan-warning');
+    if (result.warning) {
+      warnEl.textContent = result.warning;
+      warnEl.style.display = 'block';
+    } else {
+      warnEl.style.display = 'none';
+    }
+
+    resultsEl.classList.add('visible');
+
+    // Store for saving
+    resultsEl.dataset.removed = result.noDrainNeeded ? 0 : result.volumeToDrain;
+    resultsEl.dataset.percentage = result.percentage;
+    resultsEl.dataset.prime = result.primeMl;
+    resultsEl.dataset.totalNewWater = result.totalNewWater;
+    resultsEl.dataset.evaporated = result.evaporated;
+    resultsEl.dataset.drainTo = result.drainToFromRim;
+  }
+
+  function savePlanWaterChange() {
+    const r = document.getElementById('plan-results');
+    if (!r.classList.contains('visible')) return;
+
+    Tracker.saveWaterChange({
+      removed: parseFloat(r.dataset.removed),
+      percentage: parseFloat(r.dataset.percentage),
+      primeMl: parseFloat(r.dataset.prime),
+      totalNewWater: parseFloat(r.dataset.totalNewWater),
+      evaporated: parseFloat(r.dataset.evaporated),
+      planned: true
+    });
+
+    r.classList.remove('visible');
+    document.getElementById('plan-current').value = '';
+    showToast('Water change saved!');
+  }
+
   // ── Water Tests ──
   function renderTests() {
     const tests = Tracker.getTests();
@@ -200,6 +292,7 @@ const App = (() => {
     document.getElementById('test-nitrite').value = '';
     document.getElementById('test-nitrate').value = '';
     document.getElementById('highph-group').style.display = 'none';
+    ['ph', 'highPh', 'ammonia', 'nitrite', 'nitrate'].forEach(p => updateSwatch(p, ''));
     showToast('Test saved!');
     renderTests();
   }
@@ -213,7 +306,24 @@ const App = (() => {
     const val = document.getElementById('test-ph').value;
     const group = document.getElementById('highph-group');
     group.style.display = (val === '7.6') ? 'block' : 'none';
-    if (val !== '7.6') document.getElementById('test-highph').value = '';
+    if (val !== '7.6') {
+      document.getElementById('test-highph').value = '';
+      updateSwatch('highPh', '');
+    }
+    updateSwatch('ph', val);
+  }
+
+  function updateSwatch(param, value) {
+    const el = document.getElementById('swatch-' + param.toLowerCase());
+    if (!el) return;
+    const color = Tracker.KIT_COLORS[param]?.[value];
+    if (color) {
+      el.style.backgroundColor = color;
+      el.classList.add('active');
+    } else {
+      el.style.backgroundColor = '';
+      el.classList.remove('active');
+    }
   }
 
   // ── Feeding ──
@@ -290,6 +400,7 @@ const App = (() => {
     document.getElementById('set-length').value = tank.lengthCm;
     document.getElementById('set-width').value = tank.widthCm;
     document.getElementById('set-height').value = tank.heightCm;
+    document.getElementById('set-fill-margin').value = tank.fillMarginCm;
     document.getElementById('set-prime').value = tank.primeMlPer200L;
     updateSettingsVolume();
   }
@@ -300,6 +411,7 @@ const App = (() => {
       lengthCm: parseFloat(document.getElementById('set-length').value) || 120,
       widthCm: parseFloat(document.getElementById('set-width').value) || 44.5,
       heightCm: parseFloat(document.getElementById('set-height').value) || 50,
+      fillMarginCm: parseFloat(document.getElementById('set-fill-margin').value) || 8,
       primeMlPer200L: parseFloat(document.getElementById('set-prime').value) || 5
     };
     Tracker.saveTank(tank);
@@ -311,8 +423,13 @@ const App = (() => {
     const l = parseFloat(document.getElementById('set-length').value) || 0;
     const w = parseFloat(document.getElementById('set-width').value) || 0;
     const h = parseFloat(document.getElementById('set-height').value) || 0;
+    const fm = parseFloat(document.getElementById('set-fill-margin').value) || 0;
     document.getElementById('set-volume-display').textContent =
       `Calculated volume: ${Math.round(Calculator.maxVolume(l, w, h))}L`;
+    const fillDepth = Math.max(h - fm, 0);
+    const fillVol = Math.round((l * w * fillDepth) / 1000);
+    document.getElementById('set-fill-volume-display').textContent =
+      `Fill volume: ${fillVol}L`;
   }
 
   function exportData() {
@@ -378,17 +495,23 @@ const App = (() => {
     // Calculator buttons
     document.getElementById('btn-calculate').addEventListener('click', doCalculate);
     document.getElementById('btn-save-wc').addEventListener('click', saveWaterChange);
+    document.getElementById('btn-plan-calculate').addEventListener('click', doPlanCalculate);
+    document.getElementById('btn-save-plan-wc').addEventListener('click', savePlanWaterChange);
 
     // Test form
     document.getElementById('btn-save-test').addEventListener('click', saveTest);
     document.getElementById('test-ph').addEventListener('change', onPhChange);
+    document.getElementById('test-highph').addEventListener('change', () => updateSwatch('highPh', document.getElementById('test-highph').value));
+    document.getElementById('test-ammonia').addEventListener('change', () => updateSwatch('ammonia', document.getElementById('test-ammonia').value));
+    document.getElementById('test-nitrite').addEventListener('change', () => updateSwatch('nitrite', document.getElementById('test-nitrite').value));
+    document.getElementById('test-nitrate').addEventListener('change', () => updateSwatch('nitrate', document.getElementById('test-nitrate').value));
 
     // Feed buttons
     document.getElementById('btn-quick-feed').addEventListener('click', saveFeed);
 
     // Settings
     document.getElementById('btn-save-settings').addEventListener('click', saveSettings);
-    ['set-length', 'set-width', 'set-height'].forEach(id => {
+    ['set-length', 'set-width', 'set-height', 'set-fill-margin'].forEach(id => {
       document.getElementById(id).addEventListener('input', updateSettingsVolume);
     });
     document.getElementById('btn-export').addEventListener('click', exportData);
@@ -401,7 +524,7 @@ const App = (() => {
   document.addEventListener('DOMContentLoaded', init);
 
   return {
-    navigate, doCalculate, saveWaterChange, saveTest, deleteTest,
-    saveFeed, deleteFeed, deleteWC, exportData, clearData
+    navigate, doCalculate, saveWaterChange, doPlanCalculate, savePlanWaterChange,
+    saveTest, deleteTest, saveFeed, deleteFeed, deleteWC, exportData, clearData
   };
 })();
