@@ -376,8 +376,8 @@ const App = (() => {
         <button class="delete-btn" onclick="App.deleteFeed(${f.id})" title="Delete">✕</button>
         <div class="date">${formatDate(f.date)}</div>
         <div class="details">
-          <div class="detail"><span>${f.foodType || 'Fed'}</span></div>
-          ${f.amount ? `<div class="detail">Amount: <span>${f.amount}</span></div>` : ''}
+          <div class="detail"><span>${escapeHtml(f.foodType || 'Fed')}</span></div>
+          ${f.amount ? `<div class="detail">Amount: <span>${escapeHtml(f.amount)}</span></div>` : ''}
         </div>
       </div>
     `).join('');
@@ -408,11 +408,11 @@ const App = (() => {
   function saveSettings() {
     const tank = {
       name: document.getElementById('set-name').value.trim() || 'My Aquarium',
-      lengthCm: parseFloat(document.getElementById('set-length').value) || 120,
-      widthCm: parseFloat(document.getElementById('set-width').value) || 44.5,
-      heightCm: parseFloat(document.getElementById('set-height').value) || 50,
-      fillMarginCm: parseFloat(document.getElementById('set-fill-margin').value) || 8,
-      primeMlPer200L: parseFloat(document.getElementById('set-prime').value) || 5
+      lengthCm: numInput('set-length', 120, 0.1),
+      widthCm: numInput('set-width', 44.5, 0.1),
+      heightCm: numInput('set-height', 50, 0.1),
+      fillMarginCm: numInput('set-fill-margin', 8, 0),
+      primeMlPer200L: numInput('set-prime', 5, 0.5)
     };
     Tracker.saveTank(tank);
     showToast('Settings saved!');
@@ -452,6 +452,20 @@ const App = (() => {
   }
 
   // ── Helpers ──
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function numInput(id, fallback, min = 0) {
+    const v = parseFloat(document.getElementById(id).value);
+    return Number.isFinite(v) && v >= min ? v : fallback;
+  }
+
   function formatDate(iso) {
     if (!iso) return '';
     const d = new Date(iso);
